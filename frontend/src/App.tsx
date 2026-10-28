@@ -27,6 +27,7 @@ type ComparisonResult = {
     representation?: {
       ocr_regions?: Array<{ text: string; confidence?: number | null }>;
       detections?: Array<{ label: string; confidence: number; bbox_xyxy: number[] }>;
+      relationships?: Array<{ subject_label: string; relation: string; object_label: string }>;
     };
   };
   comparison: {
@@ -320,6 +321,14 @@ export default function App() {
                     <li key={index + "-" + item.label}><span>{item.label}</span><small>{(item.confidence * 100).toFixed(0) + "% confidence"}</small></li>
                   ))}</ul>
                 ) : <p>No objects were detected.</p>}
+                <h3>Spatial relationships</h3>
+                {(result.structured_pipeline.representation.relationships || []).length ? (
+                  <ul>{result.structured_pipeline.representation.relationships?.map((item, index) => (
+                    <li key={index + "-" + item.subject_label + "-" + item.object_label}>
+                      <span>{item.subject_label + " " + item.relation.replaceAll("_", " ") + " " + item.object_label}</span>
+                    </li>
+                  ))}</ul>
+                ) : <p>No spatial relationships were derived.</p>}
               </div>
             </details>
           )}
