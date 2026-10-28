@@ -2,6 +2,7 @@
 
 import json
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -17,7 +18,7 @@ def _connect(database_path: str) -> sqlite3.Connection:
 
 def initialize_store(database_path: str) -> None:
     """Create the local experiment tables if they do not exist."""
-    with _connect(database_path) as connection:
+    with closing(_connect(database_path)) as connection, connection:
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS comparison_runs (
