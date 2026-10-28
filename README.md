@@ -56,7 +56,7 @@ On macOS/Linux, use `cp .env.example .env`. Never commit real API keys.
 ### 2. Run the API
 
 ```bash
-uvicorn app.main:app --reload
+python -m app
 ```
 
 API documentation will be available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
