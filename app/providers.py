@@ -17,6 +17,7 @@ class GenerationResult:
     latency_seconds: float
     input_tokens: int | None = None
     output_tokens: int | None = None
+    reasoning_tokens: int | None = None
     estimated_cost_usd: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -31,6 +32,7 @@ def _result(
     started: float,
     input_tokens: Any = None,
     output_tokens: Any = None,
+    reasoning_tokens: Any = None,
 ) -> GenerationResult:
     return GenerationResult(
         provider=provider,
@@ -39,6 +41,7 @@ def _result(
         latency_seconds=round(perf_counter() - started, 6),
         input_tokens=int(input_tokens) if input_tokens is not None else None,
         output_tokens=int(output_tokens) if output_tokens is not None else None,
+        reasoning_tokens=int(reasoning_tokens) if reasoning_tokens is not None else None,
     )
 
 
@@ -103,6 +106,7 @@ class ModelProvider:
             "gemini", model, getattr(response, "text", "") or "", started,
             getattr(usage, "prompt_token_count", None),
             getattr(usage, "candidates_token_count", None),
+            getattr(usage, "thoughts_token_count", None),
         )
 
     def _gemini_image(self, model: str, image_bytes: bytes, mime_type: str, prompt: str) -> GenerationResult:
