@@ -24,6 +24,7 @@ class ImageStructure(BaseModel):
     image: dict[str, Any]
     ocr_regions: list[OCRTextRegion] = Field(default_factory=list)
     detections: list[ObjectDetection] = Field(default_factory=list)
+    relationships: list[dict[str, Any]] = Field(default_factory=list)
     processing: dict[str, float] = Field(default_factory=dict)
 
 
