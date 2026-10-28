@@ -62,7 +62,7 @@ def _estimate_cost(
         if input_rate is None or output_rate is None:
             return None
         return round((input_tokens * float(input_rate) + (output_tokens + reasoning_tokens) * float(output_rate)) / 1_000_000, 8)
-    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+    except (OSError, ValueError, TypeError):
         return None
 
 
