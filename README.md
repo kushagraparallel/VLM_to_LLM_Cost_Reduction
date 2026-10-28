@@ -4,7 +4,7 @@ A research project comparing direct Vision-Language Model (VLM) image understand
 
 ## Project status
 
-This repository is being initialized. The initial implementation will provide a FastAPI backend and a React + Vite + TypeScript comparison UI. Core pipeline components will be separated into image validation, PaddleOCR, YOLO26 Nano/OpenVINO detection, structured representation, provider adapters, and evaluation/feedback services.
+The repository includes a FastAPI backend and a React + Vite + TypeScript comparison UI. The initial workflow supports image validation, PaddleOCR extraction, YOLO26 Nano/OpenVINO detection, structured evidence generation, Gemini/Groq/Bedrock provider adapters, experiment metrics, and saved human feedback. See the roadmap for planned hardening and deployment work.
 
 ## Approach
 
@@ -61,9 +61,49 @@ uvicorn app.main:app --reload
 
 API documentation will be available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
-### 3. Frontend
+### 3. Run the frontend
 
-Frontend setup instructions will be added with the frontend workspace. The intended stack is React, Vite, and TypeScript.
+Use Node.js 22 and open a second terminal:
+
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Open [http://127.0.0.1:5173](http://127.0.0.1:5173). On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp`.
+
+### 4. Configure providers and YOLO26
+
+Edit `.env` and add the credentials/model IDs for the chosen providers. Gemini is the default. Optional Groq and Bedrock models must support the task being assigned (vision input for `VLM_PROVIDER`, text input for `LLM_PROVIDER`).
+
+Export YOLO26 Nano to OpenVINO format from the repository root:
+
+```bash
+yolo export model=yolo26n.pt imgsz=640 format=openvino
+```
+
+Set `YOLO_MODEL_PATH` to the generated directory, or move the generated directory to `models/yolo26n_openvino_model`. PaddleOCR downloads its models the first time it is used.
+
+### 5. Test and verify dependencies
+
+```bash
+python -m pip check
+python -m pytest
+```
+
+Use `python -m pip install -r requirements-dev.txt` to install the test and lint tools in addition to the runtime dependencies.
+
+## API endpoints
+
+- `GET /health` — lightweight process health check.
+- `POST /api/v1/vision/structure` — return OCR regions and YOLO detections without cloud calls.
+- `POST /api/v1/compare` — run the direct VLM and structured LLM comparison. Submit multipart fields `file` and `prompt`.
+- `POST /api/v1/feedback` — save per-path ratings and the preferred result for a returned `run_id`.
+- `GET /docs` — interactive API documentation.
+
+Comparison records and feedback are stored in the configured local SQLite database. The image bytes are not stored, but prompts, extracted OCR text, representations, and model responses may contain sensitive information; use only data you are allowed to process and apply appropriate retention controls before hosting.
 
 ## Documentation
 
