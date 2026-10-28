@@ -128,6 +128,11 @@ async def run_comparison(
     )
     vlm_result = await vlm_task
 
+    vlm_result.setdefault("provider", vlm_provider)
+    vlm_result.setdefault("model", vlm_model)
+    llm_result.setdefault("provider", llm_provider)
+    llm_result.setdefault("model", llm_model)
+
     if not vlm_result.get("provider_call_failed"):
         vlm_result["estimated_cost_usd"] = _estimate_cost(
             vlm_result, vlm_provider, settings.pricing_config_path
