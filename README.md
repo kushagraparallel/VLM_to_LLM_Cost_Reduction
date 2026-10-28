@@ -99,7 +99,7 @@ Use `python -m pip install -r requirements-dev.txt` to install the test and lint
 
 - `GET /health` — lightweight process health check.
 - `POST /api/v1/vision/structure` — return OCR regions and YOLO detections without cloud calls.
-- `POST /api/v1/compare` — run the direct VLM and structured LLM comparison. Submit multipart fields `file` and `prompt`.
+- `POST /api/v1/compare` — run the direct VLM and structured LLM comparison. Submit multipart fields `file`, `prompt`, `vlm_provider`, and `llm_provider`.
 - `POST /api/v1/feedback` — save per-path ratings and the preferred result for a returned `run_id`.
 - `GET /docs` — interactive API documentation.
 
