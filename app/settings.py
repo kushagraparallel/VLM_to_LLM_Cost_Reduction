@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     groq_llm_model: str | None = None
     groq_vlm_model: str | None = None
     aws_region: str = "us-east-1"
+    aws_access_key_id: str | None = None
+    aws_secret_access_key: str | None = None
+    aws_session_token: str | None = None
     bedrock_llm_model_id: str | None = None
     bedrock_vlm_model_id: str | None = None
 
