@@ -9,6 +9,7 @@ type ModelResult = {
   path_seconds?: number | null;
   input_tokens?: number | null;
   output_tokens?: number | null;
+  reasoning_tokens?: number | null;
   estimated_cost_usd?: number | null;
   cost_estimate_usd?: number | null;
   cost_scope?: string;
@@ -102,6 +103,7 @@ function ResultCard({
         <Metric label="Estimated API cost" value={formatCost(result.estimated_cost_usd ?? result.cost_estimate_usd)} />
         <Metric label="Input tokens" value={formatTokens(result.input_tokens)} />
         <Metric label="Output tokens" value={formatTokens(result.output_tokens)} />
+        {result.reasoning_tokens != null && <Metric label="Reasoning tokens" value={formatTokens(result.reasoning_tokens)} />}
       </div>
       {result.cost_scope && <p className="metric-note">{result.cost_scope}</p>}
     </article>
@@ -291,7 +293,7 @@ export default function App() {
                 provider={result.structured_pipeline.provider}
                 model={result.structured_pipeline.model}
                 elapsed={result.comparison.structured_pipeline_seconds}
-                result={result.structured_pipeline.provider_result || result.structured_pipeline}
+                result={{ ...(result.structured_pipeline.provider_result || {}), cost_scope: result.structured_pipeline.cost_scope, cost_estimate_usd: result.structured_pipeline.cost_estimate_usd }}
               />
             </div>
             <p className="footnote">
