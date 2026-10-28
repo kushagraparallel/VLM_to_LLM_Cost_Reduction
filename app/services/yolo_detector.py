@@ -32,6 +32,7 @@ def detect_objects(image: Image.Image) -> list[dict[str, Any]]:
         source=image,
         imgsz=settings.yolo_image_size,
         conf=settings.yolo_confidence,
+        max_det=50,
         device=settings.yolo_device,
         verbose=False,
     )
