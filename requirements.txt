@@ -1,0 +1,31 @@
+# Supported runtime: CPython 3.11.x, 64-bit.
+# Install in a clean virtual environment. See docs/SETUP.md before installing
+# PaddleOCR/PaddlePaddle and OpenVINO on platform-specific systems.
+
+# API, configuration, and validation
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30,<1.0
+python-multipart>=0.0.9,<1.0
+pydantic>=2.9,<3.0
+pydantic-settings>=2.4,<3.0
+python-dotenv>=1.0,<2.0
+httpx>=0.27,<1.0
+
+# OCR: PaddleOCR 3.x uses PaddleX and PaddlePaddle 3.x.
+# If the CPU wheel is not available for your OS/architecture, follow the
+# official PaddlePaddle installation selector and install its wheel first.
+paddlepaddle>=3.0,<4.0
+paddleocr>=3.0,<4.0
+
+# Object detection and Intel inference runtime
+ultralytics>=8.3.200,<9.0
+openvino>=2025.0,<2027.0
+
+# Cloud model providers
+google-genai>=1.0,<2.0
+groq>=0.11,<1.0
+boto3>=1.35,<2.0
+
+# Image handling
+Pillow>=10.4,<13.0
+numpy>=1.26,<3.0
