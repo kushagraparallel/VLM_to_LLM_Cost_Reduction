@@ -47,7 +47,7 @@ def save_comparison(database_path: str, result: dict[str, Any]) -> None:
     """Persist a comparison without retaining the uploaded image bytes."""
     initialize_store(database_path)
     created_at = datetime.now(timezone.utc).isoformat()
-    with _connect(database_path) as connection:
+    with closing(_connect(database_path)) as connection, connection:
         connection.execute(
             """
             INSERT OR REPLACE INTO comparison_runs (run_id, created_at, prompt, result_json)
@@ -74,7 +74,7 @@ def save_feedback(
     """Persist a user's preference and optional per-answer ratings."""
     initialize_store(database_path)
     created_at = datetime.now(timezone.utc).isoformat()
-    with _connect(database_path) as connection:
+    with closing(_connect(database_path)) as connection, connection:
         run_exists = connection.execute(
             "SELECT 1 FROM comparison_runs WHERE run_id = ?", (run_id,)
         ).fetchone()
