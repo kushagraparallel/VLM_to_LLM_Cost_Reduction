@@ -43,6 +43,7 @@ def _estimate_cost(
 ) -> float | None:
     input_tokens = result.get("input_tokens")
     output_tokens = result.get("output_tokens")
+    reasoning_tokens = result.get("reasoning_tokens") or 0
     if input_tokens is None or output_tokens is None:
         return None
 
@@ -60,7 +61,7 @@ def _estimate_cost(
         output_rate = entry.get("output_per_1m")
         if input_rate is None or output_rate is None:
             return None
-        return round((input_tokens * float(input_rate) + output_tokens * float(output_rate)) / 1_000_000, 8)
+        return round((input_tokens * float(input_rate) + (output_tokens + reasoning_tokens) * float(output_rate)) / 1_000_000, 8)
     except (OSError, ValueError, TypeError, json.JSONDecodeError):
         return None
 
