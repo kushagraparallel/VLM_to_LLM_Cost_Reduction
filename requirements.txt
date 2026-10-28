@@ -18,7 +18,7 @@ paddlepaddle>=3.0,<4.0
 paddleocr>=3.0,<4.0
 
 # Object detection and Intel inference runtime
-ultralytics[export-openvino]>=8.4.0,<9.0
+ultralytics[export-openvino]>=8.4.132,<9.0
 openvino>=2025.0,<2027.0
 
 # Cloud model providers
@@ -28,4 +28,4 @@ boto3>=1.35,<2.0
 
 # Image handling
 Pillow>=10.4,<13.0
-numpy>=1.26,<3.0
+numpy>=1.26,<2.3
