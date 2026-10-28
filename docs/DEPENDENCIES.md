@@ -10,7 +10,7 @@ This file records the dependency decisions and the checks that must be repeated 
 | OCR | PaddleOCR 3.x + PaddlePaddle 3.x | PaddleOCR 3.x Paddle inference requires PaddlePaddle 3.0 or later |
 | Detection | Ultralytics 8.4.132 or later | Use a release line with YOLO26 model support |
 | Inference | OpenVINO 2025.x–2026.x | Run exported YOLO26 Nano IR on CPU by default |
-| NumPy | >=1.26,<2.3 | Conservative bound to reduce ABI surprises across the selected vision stack |
+| NumPy | >=1.26,<2.0 | Conservative bound for compiled vision-wheel ABI compatibility |
 | API | FastAPI + Pydantic 2 | Async HTTP boundary and typed validation |
 | Providers | google-genai, groq, boto3 | Optional provider SDKs are imported only when used |
 
@@ -21,7 +21,7 @@ Official references:
 
 ## Known OpenCV package overlap
 
-OpenCV is the main known packaging risk. Ultralytics declares opencv-python; PaddleOCR/PaddleX versions and installation paths may declare opencv-contrib-python or other OpenCV distributions. These distributions expose the same cv2 import namespace and can overwrite overlapping files if multiple variants are installed. pip check validates package metadata but may not detect every file-level collision.
+OpenCV is the main known packaging risk. Ultralytics declares opencv-python; PaddleOCR/PaddleX versions and installation paths may declare opencv-contrib-python. Both distributions expose the same cv2 import namespace. The requirements file pins both distributions to the same release (4.10.0.84) to reduce version skew while satisfying the upstream metadata. This is a pragmatic compatibility measure, not a guarantee against file-level collisions. pip check validates package metadata but may not detect every file-level collision.
 
 To reduce surprises:
 1. Start with a fresh virtual environment; do not reuse an environment that already contains OpenCV packages.
