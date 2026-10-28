@@ -139,3 +139,14 @@ textarea:focus { border-color: #688aa2; box-shadow: 0 0 0 3px rgba(70, 113, 143,
   .footer { flex-direction: column; gap: 8px; }
   .feedback-footer { align-items: flex-start; flex-direction: column; }
 }
+
+
+.provider-select-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 6px; }
+.select-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.select-field label { color: #344757; font-weight: 700; font-size: 11px; }
+.select-field select { width: 100%; min-width: 0; border: 1px solid #dce4ea; border-radius: 9px; padding: 10px 11px; color: #263949; background: #fcfdfd; outline: none; }
+.select-field select:focus { border-color: #688aa2; box-shadow: 0 0 0 3px rgba(70, 113, 143, .1); }
+.provider-note { color: #84919c; font-size: 10px; line-height: 1.5; margin: 5px 0 16px; }
+@media (max-width: 520px) {
+  .provider-select-grid { grid-template-columns: 1fr; }
+}
