@@ -109,6 +109,7 @@ Comparison records and feedback are stored in the configured local SQLite databa
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Setup and troubleshooting](docs/SETUP.md)
+- [Dependency compatibility review](docs/DEPENDENCIES.md)
 - [Configuration and providers](docs/CONFIGURATION.md)
 - [Evaluation methodology](docs/EVALUATION.md)
 - [Roadmap](docs/ROADMAP.md)
