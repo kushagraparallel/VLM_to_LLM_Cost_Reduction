@@ -162,7 +162,17 @@ class ModelProvider:
     def _bedrock_client(self) -> Any:
         import boto3
 
-        return boto3.client("bedrock-runtime", region_name=self.settings.aws_region)
+        credentials = {}
+        if self.settings.aws_access_key_id and self.settings.aws_secret_access_key:
+            credentials = {
+                "aws_access_key_id": self.settings.aws_access_key_id,
+                "aws_secret_access_key": self.settings.aws_secret_access_key,
+            }
+            if self.settings.aws_session_token:
+                credentials["aws_session_token"] = self.settings.aws_session_token
+        return boto3.client(
+            "bedrock-runtime", region_name=self.settings.aws_region, **credentials
+        )
 
     def _bedrock_text(self, model: str, prompt: str, system_instruction: str) -> GenerationResult:
         started = perf_counter()
