@@ -33,7 +33,7 @@ To reduce surprises:
 
 ## Installation verification checklist
 
-Run these after installation and retain the output in your local development notes:
+Install development tools first with python -m pip install -r requirements-dev.txt, then run these commands and retain the output in your local development notes:
 
     python --version
     python -m pip check
