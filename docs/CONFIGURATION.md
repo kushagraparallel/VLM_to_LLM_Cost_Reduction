@@ -1,0 +1,23 @@
+# Configuration
+
+Copy `.env.example` to `.env`. Keep real credentials local and rotate any key that has been accidentally committed.
+
+## Providers
+- `LLM_PROVIDER`: `gemini`, `groq`, or `bedrock` for the text-only structured pipeline.
+- `VLM_PROVIDER`: `gemini` or `bedrock` where the selected model supports image input. Groq VLM support depends on the selected model; configure only a model that supports vision.
+- Gemini uses `GEMINI_API_KEY` and separate text/vision model IDs.
+- Groq uses `GROQ_API_KEY` and model IDs supported by the account.
+- Bedrock uses AWS credentials from the standard AWS credential chain and model IDs enabled in the selected region.
+
+Provider/model availability changes. Validate selected model capabilities at startup or request time; do not assume every provider model supports vision, usage reporting, or the same token-counting semantics.
+
+## Local image processing
+- `YOLO_MODEL_PATH`: exported OpenVINO model directory.
+- `YOLO_WEIGHTS_PATH`: source Ultralytics checkpoint used for export.
+- `YOLO_CONFIDENCE`: minimum object-detection confidence.
+- `YOLO_IMAGE_SIZE`: inference image size.
+- `YOLO_DEVICE`: OpenVINO device such as `CPU`.
+- `PADDLEOCR_LANGUAGE`: PaddleOCR language selection.
+
+## Measurement
+Model pricing should live in a versioned configuration file rather than provider code. Each pricing entry should identify the provider/model, effective date, currency, input rate, output rate, and billing unit. Cost should be marked unavailable when usage or a pricing entry is missing; never represent an unknown cost as zero.
