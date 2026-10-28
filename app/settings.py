@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     api_host: str = "127.0.0.1"
     api_port: int = Field(default=8000, ge=1, le=65535)
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     llm_provider: str = "gemini"
     vlm_provider: str = "gemini"
