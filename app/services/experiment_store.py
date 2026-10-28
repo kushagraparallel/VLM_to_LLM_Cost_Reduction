@@ -3,7 +3,7 @@
 import json
 import sqlite3
 from contextlib import closing
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -46,7 +46,7 @@ def initialize_store(database_path: str) -> None:
 def save_comparison(database_path: str, result: dict[str, Any]) -> None:
     """Persist a comparison without retaining the uploaded image bytes."""
     initialize_store(database_path)
-    created_at = datetime.now(timezone.utc).isoformat()
+    created_at = datetime.now(UTC).isoformat()
     with closing(_connect(database_path)) as connection, connection:
         connection.execute(
             """
