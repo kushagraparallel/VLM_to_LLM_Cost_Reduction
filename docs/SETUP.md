@@ -20,7 +20,7 @@ py -3.11 -m venv .venv
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install -r requirements.txt
 Copy-Item .env.example .env
-uvicorn app.main:app --reload
+python -m app
 ```
 
 ### macOS/Linux
@@ -31,7 +31,7 @@ source .venv/bin/activate
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install -r requirements.txt
 cp .env.example .env
-uvicorn app.main:app --reload
+python -m app
 ```
 
 Open http://127.0.0.1:8000/docs and check http://127.0.0.1:8000/health.
