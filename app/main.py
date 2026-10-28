@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.comparison_routes import router as comparison_router
+from app.feedback_routes import router as feedback_router
 from app.routes import router as vision_router
 from app.settings import get_settings
 
@@ -30,6 +31,7 @@ app.add_middleware(
 
 app.include_router(vision_router)
 app.include_router(comparison_router)
+app.include_router(feedback_router)
 
 
 @app.get("/health", tags=["system"])
