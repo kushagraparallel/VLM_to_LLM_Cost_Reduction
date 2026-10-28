@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     llm_provider: str = "gemini"
     vlm_provider: str = "gemini"
     gemini_api_key: str | None = None
+    gemini_use_vertexai: bool = False
+    google_cloud_project: str | None = None
+    google_cloud_location: str = "global"
     gemini_llm_model: str = "gemini-3.8-flash"
     gemini_vlm_model: str = "gemini-3.8-flash"
     groq_api_key: str | None = None
