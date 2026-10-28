@@ -19,8 +19,9 @@ router = APIRouter(prefix="/api/v1/vision", tags=["vision"])
 async def extract_image_structure(file: UploadFile = File(...)) -> ImageStructure:
     """Extract OCR text and object detections without calling a cloud model."""
     settings = get_settings()
-    payload = await file.read()
-    if len(payload) > settings.max_upload_size_mb * 1024 * 1024:
+    max_upload_bytes = settings.max_upload_size_mb * 1024 * 1024
+    payload = await file.read(max_upload_bytes + 1)
+    if len(payload) > max_upload_bytes:
         raise HTTPException(status_code=413, detail="Image exceeds the configured upload limit.")
 
     try:
