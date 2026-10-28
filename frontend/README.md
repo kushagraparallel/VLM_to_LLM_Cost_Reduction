@@ -15,4 +15,4 @@ Open http://127.0.0.1:5173. Start the FastAPI backend separately; its default ad
 
 Set VITE_API_BASE_URL if the API is hosted elsewhere. The backend's CORS_ORIGINS must include the frontend origin.
 
-The UI sends the image and prompt to POST /api/v1/compare, displays both outputs and available metrics, and submits ratings/preference to POST /api/v1/feedback.
+The UI lets you choose Gemini, Groq, or Bedrock independently for the direct VLM and structured text LLM paths. Provider credentials and model IDs must be configured in the backend environment. The UI sends the image, prompt, and provider choices to POST /api/v1/compare, then submits ratings/preference to POST /api/v1/feedback.
