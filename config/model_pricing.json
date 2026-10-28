@@ -1,0 +1,6 @@
+{
+  "currency": "USD",
+  "last_reviewed": null,
+  "models": {},
+  "notes": "Add verified provider pricing and its effective date before reporting cost estimates. Empty pricing means cost is unavailable, not zero."
+}
