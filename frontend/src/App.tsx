@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 type ModelResult = {
   provider?: string;
@@ -125,7 +125,7 @@ export default function App() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
-  async function runComparison(event: React.FormEvent<HTMLFormElement>) {
+  async function runComparison(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!file || !prompt.trim()) {
       setError("Choose an image and enter a prompt to continue.");
