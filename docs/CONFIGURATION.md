@@ -11,7 +11,7 @@ Copy `.env.example` to `.env`. Keep real credentials local and rotate any key th
 - Groq uses `GROQ_API_KEY` and model IDs supported by the account.
 - Bedrock uses AWS credentials from the standard AWS credential chain and model IDs enabled in the selected region.
 
-Provider/model availability changes. Validate selected model capabilities at startup or request time; do not assume every provider model supports vision, usage reporting, or the same token-counting semantics.
+The UI lets each comparison choose a VLM provider and an LLM provider independently. The model IDs still come from this environment configuration. Provider/model availability changes. Validate selected model capabilities at startup or request time; do not assume every provider model supports vision, usage reporting, or the same token-counting semantics.
 
 ## Local image processing
 - `YOLO_MODEL_PATH`: exported OpenVINO model directory.
