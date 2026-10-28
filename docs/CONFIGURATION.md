@@ -18,7 +18,7 @@ Provider/model availability changes. Validate selected model capabilities at sta
 - `YOLO_WEIGHTS_PATH`: source Ultralytics checkpoint used for export.
 - `YOLO_CONFIDENCE`: minimum object-detection confidence.
 - `YOLO_IMAGE_SIZE`: inference image size.
-- `YOLO_DEVICE`: OpenVINO device such as `CPU`.
+- `YOLO_DEVICE`: OpenVINO device such as `intel:cpu`.
 - `PADDLEOCR_LANGUAGE`: PaddleOCR language selection.
 
 ## Measurement
