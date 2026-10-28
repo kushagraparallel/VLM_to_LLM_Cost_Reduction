@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Callable
@@ -49,6 +50,11 @@ def _estimate_cost(
         pricing = json.loads(Path(pricing_config_path).read_text(encoding="utf-8"))
         entry = pricing.get("models", {}).get(f"{provider}/{result.get('model')}")
         if not entry:
+            return None
+        today = datetime.now(timezone.utc).date().isoformat()
+        if entry.get("effective_from") and today < entry["effective_from"]:
+            return None
+        if entry.get("effective_until") and today > entry["effective_until"]:
             return None
         input_rate = entry.get("input_per_1m")
         output_rate = entry.get("output_per_1m")
@@ -135,11 +141,15 @@ async def run_comparison(
 
     if not vlm_result.get("provider_call_failed"):
         vlm_result["estimated_cost_usd"] = _estimate_cost(
-            vlm_result, vlm_provider, settings.pricing_config_path
+            vlm_result,
+            "vertex_gemini" if vlm_provider == "gemini" and settings.gemini_use_vertexai else vlm_provider,
+            settings.pricing_config_path,
         )
     if not llm_result.get("provider_call_failed"):
         llm_result["estimated_cost_usd"] = _estimate_cost(
-            llm_result, llm_provider, settings.pricing_config_path
+            llm_result,
+            "vertex_gemini" if llm_provider == "gemini" and settings.gemini_use_vertexai else llm_provider,
+            settings.pricing_config_path,
         )
 
     pipeline_seconds = round(
