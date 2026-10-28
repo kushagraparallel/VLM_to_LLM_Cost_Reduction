@@ -77,8 +77,16 @@ class ModelProvider:
     def _gemini_client(self) -> Any:
         from google import genai
 
+        if self.settings.gemini_use_vertexai:
+            if not self.settings.google_cloud_project:
+                raise ValueError("GOOGLE_CLOUD_PROJECT is required when GEMINI_USE_VERTEXAI=true.")
+            return genai.Client(
+                vertexai=True,
+                project=self.settings.google_cloud_project,
+                location=self.settings.google_cloud_location,
+            )
         if not self.settings.gemini_api_key:
-            raise ValueError("GEMINI_API_KEY is required for the Gemini provider.")
+            raise ValueError("GEMINI_API_KEY is required for the Gemini Developer API.")
         return genai.Client(api_key=self.settings.gemini_api_key)
 
     def _gemini_text(self, model: str, prompt: str, system_instruction: str) -> GenerationResult:
