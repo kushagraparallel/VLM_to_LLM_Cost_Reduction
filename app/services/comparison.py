@@ -23,6 +23,7 @@ from app.settings import Settings
 
 
 async def _safe_provider_call(call: Callable[..., GenerationResult], *args: Any) -> dict[str, Any]:
+    started = perf_counter()
     try:
         result = await run_in_threadpool(call, *args)
         return result.to_dict()
@@ -30,6 +31,7 @@ async def _safe_provider_call(call: Callable[..., GenerationResult], *args: Any)
         return {
             "error": f"{type(exc).__name__}: {exc}",
             "provider_call_failed": True,
+            "latency_seconds": round(perf_counter() - started, 6),
         }
 
 
