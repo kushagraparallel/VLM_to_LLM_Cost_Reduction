@@ -9,7 +9,7 @@ Copy `.env.example` to `.env`. Keep real credentials local and rotate any key th
 - To use Vertex AI instead, set `GEMINI_USE_VERTEXAI=true`, configure `GOOGLE_CLOUD_PROJECT` and `GOOGLE_CLOUD_LOCATION`, and use Application Default Credentials or an appropriate service identity. Model and regional availability must be checked for the chosen Vertex location.
 - The sample pricing entry applies only to the Gemini Developer API. Vertex AI costs remain unavailable until a separate, verified Vertex pricing entry is configured.
 - Groq uses `GROQ_API_KEY` and model IDs supported by the account.
-- Bedrock uses AWS credentials from the standard AWS credential chain and model IDs enabled in the selected region.
+- Bedrock accepts optional `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN` values from `.env`; otherwise it uses the standard AWS credential chain. Model IDs must be enabled in the selected region.
 
 The UI lets each comparison choose a VLM provider and an LLM provider independently. The model IDs still come from this environment configuration. Provider/model availability changes. Validate selected model capabilities at startup or request time; do not assume every provider model supports vision, usage reporting, or the same token-counting semantics.
 
