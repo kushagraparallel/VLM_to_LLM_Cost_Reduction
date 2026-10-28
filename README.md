@@ -89,11 +89,13 @@ Set `YOLO_MODEL_PATH` to the generated directory, or move the generated director
 ### 5. Test and verify dependencies
 
 ```bash
+python -m pip install -r requirements-dev.txt
 python -m pip check
 python -m pytest
+python -m ruff check app tests
 ```
 
-Use `python -m pip install -r requirements-dev.txt` to install the test and lint tools in addition to the runtime dependencies.
+The development requirements include the runtime dependencies plus pytest and Ruff.
 
 ## API endpoints
 
