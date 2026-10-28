@@ -25,8 +25,9 @@ async def compare_image_models(
     if not user_prompt.strip():
         raise HTTPException(status_code=422, detail="Prompt must not be blank.")
 
-    payload = await file.read()
-    if len(payload) > settings.max_upload_size_mb * 1024 * 1024:
+    max_upload_bytes = settings.max_upload_size_mb * 1024 * 1024
+    payload = await file.read(max_upload_bytes + 1)
+    if len(payload) > max_upload_bytes:
         raise HTTPException(status_code=413, detail="Image exceeds the configured upload limit.")
 
     try:
