@@ -9,7 +9,7 @@ The image and the user's prompt are sent to a configured vision-capable model. T
 1. Validate and decode the uploaded image.
 2. Run PaddleOCR to extract recognized text and geometry.
 3. Run YOLO26 Nano through OpenVINO to detect objects and bounding boxes.
-4. Normalize detections and OCR regions into a versioned JSON representation.
+4. Normalize detections and OCR regions into a versioned JSON representation, including pixel/normalized bounding boxes and bounded geometric relationships such as left-of, above, overlap, and below.
 5. Send that representation and the exact same user prompt to a text-capable LLM. This path adds a separate system instruction explaining that the supplied structured representation is the pipeline's internal visual evidence, not a literal image.
 
 ## Boundaries
