@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     yolo_weights_path: str = "models/yolo26n.pt"
     yolo_confidence: float = Field(default=0.25, ge=0.0, le=1.0)
     yolo_image_size: int = Field(default=640, gt=0)
-    yolo_device: str = "CPU"
+    yolo_device: str = "intel:cpu"
     paddleocr_language: str = "en"
     max_upload_size_mb: int = Field(default=15, gt=0)
     results_db_path: str = "data/results.sqlite3"
