@@ -5,7 +5,9 @@ Copy `.env.example` to `.env`. Keep real credentials local and rotate any key th
 ## Providers
 - `LLM_PROVIDER`: `gemini`, `groq`, or `bedrock` for the text-only structured pipeline.
 - `VLM_PROVIDER`: `gemini` or `bedrock` where the selected model supports image input. Groq VLM support depends on the selected model; configure only a model that supports vision.
-- Gemini uses `GEMINI_API_KEY` and separate text/vision model IDs.
+- Gemini uses the Gemini Developer API by default (`GEMINI_API_KEY`) and separate text/vision model IDs. The default model is `gemini-3.8-flash` for both paths.
+- To use Vertex AI instead, set `GEMINI_USE_VERTEXAI=true`, configure `GOOGLE_CLOUD_PROJECT` and `GOOGLE_CLOUD_LOCATION`, and use Application Default Credentials or an appropriate service identity. Model and regional availability must be checked for the chosen Vertex location.
+- The sample pricing entry applies only to the Gemini Developer API. Vertex AI costs remain unavailable until a separate, verified Vertex pricing entry is configured.
 - Groq uses `GROQ_API_KEY` and model IDs supported by the account.
 - Bedrock uses AWS credentials from the standard AWS credential chain and model IDs enabled in the selected region.
 
