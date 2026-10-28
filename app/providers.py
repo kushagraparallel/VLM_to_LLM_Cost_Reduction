@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import base64
-import mimetypes
 from dataclasses import asdict, dataclass
 from time import perf_counter
 from typing import Any
@@ -224,10 +223,3 @@ class ModelProvider:
         usage = response.get("usage", {})
         return _result("bedrock", model, text, started, usage.get("inputTokens"), usage.get("outputTokens"))
 
-
-def guess_mime_type(filename: str | None, fallback: str = "image/jpeg") -> str:
-    """Guess a MIME type from a filename without trusting it as validation."""
-    if not filename:
-        return fallback
-    guessed, _ = mimetypes.guess_type(filename)
-    return guessed if guessed and guessed.startswith("image/") else fallback
