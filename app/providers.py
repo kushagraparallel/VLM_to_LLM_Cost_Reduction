@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import base64
-import mimetypes
 from dataclasses import asdict, dataclass
+import mimetypes
 from time import perf_counter
 from typing import Any
 
