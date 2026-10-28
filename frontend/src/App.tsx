@@ -40,6 +40,7 @@ type ComparisonResult = {
 };
 
 type PreferredPath = "direct_vlm" | "structured_pipeline" | "tie";
+type Provider = "gemini" | "groq" | "bedrock";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -113,6 +114,8 @@ function ResultCard({
 export default function App() {
   const [file, setFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState("Summarize this image and identify its key information.");
+  const [vlmProvider, setVlmProvider] = useState<Provider>("gemini");
+  const [llmProvider, setLlmProvider] = useState<Provider>("gemini");
   const [result, setResult] = useState<ComparisonResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [feedbackBusy, setFeedbackBusy] = useState(false);
@@ -143,6 +146,8 @@ export default function App() {
       const body = new FormData();
       body.append("file", file);
       body.append("prompt", prompt);
+      body.append("vlm_provider", vlmProvider);
+      body.append("llm_provider", llmProvider);
       const response = await fetch(API_BASE + "/api/v1/compare", {
         method: "POST",
         body,
@@ -237,6 +242,25 @@ export default function App() {
               />
             </label>
             <div className="prompt-field">
+              <div className="provider-select-grid">
+                <div className="select-field">
+                  <label htmlFor="vlm-provider">Direct VLM provider</label>
+                  <select id="vlm-provider" value={vlmProvider} onChange={(event) => setVlmProvider(event.target.value as Provider)}>
+                    <option value="gemini">Gemini</option>
+                    <option value="groq">Groq (vision model required)</option>
+                    <option value="bedrock">AWS Bedrock</option>
+                  </select>
+                </div>
+                <div className="select-field">
+                  <label htmlFor="llm-provider">Structured text LLM</label>
+                  <select id="llm-provider" value={llmProvider} onChange={(event) => setLlmProvider(event.target.value as Provider)}>
+                    <option value="gemini">Gemini</option>
+                    <option value="groq">Groq</option>
+                    <option value="bedrock">AWS Bedrock</option>
+                  </select>
+                </div>
+              </div>
+              <p className="provider-note">Model IDs and credentials are configured in the backend .env file.</p>
               <label htmlFor="prompt">Your prompt</label>
               <textarea
                 id="prompt"
