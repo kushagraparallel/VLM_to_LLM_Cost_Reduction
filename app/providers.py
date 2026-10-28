@@ -123,6 +123,7 @@ class ModelProvider:
             "gemini", model, getattr(response, "text", "") or "", started,
             getattr(usage, "prompt_token_count", None),
             getattr(usage, "candidates_token_count", None),
+            getattr(usage, "thoughts_token_count", None),
         )
 
     def _groq_client(self) -> Any:
