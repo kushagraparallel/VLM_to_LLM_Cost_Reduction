@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter
 from typing import Any, Callable
@@ -52,7 +52,7 @@ def _estimate_cost(
         entry = pricing.get("models", {}).get(f"{provider}/{result.get('model')}")
         if not entry:
             return None
-        today = datetime.now(timezone.utc).date().isoformat()
+        today = datetime.now(UTC).date().isoformat()
         if entry.get("effective_from") and today < entry["effective_from"]:
             return None
         if entry.get("effective_until") and today > entry["effective_until"]:
