@@ -1,6 +1,14 @@
 {
   "currency": "USD",
-  "last_reviewed": null,
-  "models": {},
-  "notes": "Add verified provider pricing and its effective date before reporting cost estimates. Empty pricing means cost is unavailable, not zero."
+  "last_reviewed": "2026-10-28",
+  "models": {
+    "gemini/gemini-3.8-flash": {
+      "input_per_1m": 0.75,
+      "output_per_1m": 3.75,
+      "effective_from": "2026-09-02",
+      "effective_until": "2026-12-31",
+      "source_url": "https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.8"
+    }
+  },
+  "notes": "Gemini 3.8 Flash introductory rates are time-limited through 2026-12-31 according to the linked official model documentation. Refresh this entry before the effective-until date. Other provider/model prices are intentionally unset."
 }
