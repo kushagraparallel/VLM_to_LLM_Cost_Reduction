@@ -74,11 +74,13 @@ async def run_comparison(
     image_array: Any,
     mime_type: str,
     user_prompt: str,
+    vlm_provider_override: str | None = None,
+    llm_provider_override: str | None = None,
 ) -> dict[str, Any]:
     """Run the two paths and report independent latency/usage metadata."""
     provider = ModelProvider(settings)
-    vlm_provider = settings.vlm_provider.lower()
-    llm_provider = settings.llm_provider.lower()
+    vlm_provider = (vlm_provider_override or settings.vlm_provider).lower()
+    llm_provider = (llm_provider_override or settings.llm_provider).lower()
     vlm_model = {
         "gemini": settings.gemini_vlm_model,
         "groq": settings.groq_vlm_model,
