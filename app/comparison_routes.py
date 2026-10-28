@@ -18,10 +18,15 @@ router = APIRouter(prefix="/api/v1", tags=["comparison"])
 async def compare_image_models(
     prompt: str = Form(..., min_length=1, max_length=8000),
     file: UploadFile = File(...),
+    vlm_provider: str = Form(default="gemini"),
+    llm_provider: str = Form(default="gemini"),
 ) -> dict:
     """Compare a direct VLM response with OCR/detection plus a text LLM."""
     settings = get_settings()
     user_prompt = prompt
+    allowed_providers = {"gemini", "groq", "bedrock"}
+    if vlm_provider not in allowed_providers or llm_provider not in allowed_providers:
+        raise HTTPException(status_code=422, detail="Provider must be gemini, groq, or bedrock.")
     if not user_prompt.strip():
         raise HTTPException(status_code=422, detail="Prompt must not be blank.")
 
@@ -48,6 +53,8 @@ async def compare_image_models(
             image_array=image_array,
             mime_type="image/png",
             user_prompt=user_prompt,
+            vlm_provider_override=vlm_provider,
+            llm_provider_override=llm_provider,
         )
         result["run_id"] = str(uuid4())
         await run_in_threadpool(save_comparison, settings.results_db_path, result)
