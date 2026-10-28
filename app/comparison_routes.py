@@ -1,11 +1,13 @@
 """HTTP endpoint for side-by-side model comparison."""
 
 from io import BytesIO
+from uuid import uuid4
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from starlette.concurrency import run_in_threadpool
 
 from app.services.comparison import run_comparison
+from app.services.experiment_store import save_comparison
 from app.services.image_processing import InvalidImageError, decode_image
 from app.settings import get_settings
 
@@ -38,7 +40,7 @@ async def compare_image_models(
     normalized_image_bytes = buffer.getvalue()
 
     try:
-        return await run_comparison(
+        result = await run_comparison(
             settings=settings,
             image_bytes=normalized_image_bytes,
             image=image,
@@ -46,6 +48,9 @@ async def compare_image_models(
             mime_type="image/png",
             user_prompt=user_prompt,
         )
+        result["run_id"] = str(uuid4())
+        await run_in_threadpool(save_comparison, settings.results_db_path, result)
+        return result
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:
