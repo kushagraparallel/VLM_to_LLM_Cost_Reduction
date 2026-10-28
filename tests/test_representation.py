@@ -3,6 +3,7 @@ import json
 from app.schemas import ImageStructure
 from app.services.representation import (
     STRUCTURED_IMAGE_SYSTEM_INSTRUCTION,
+    build_spatial_relationships,
     build_structured_user_message,
     serialize_image_structure,
     structure_to_dict,
@@ -52,3 +53,16 @@ def test_structure_builder_records_dimensions_and_timings() -> None:
 def test_structured_system_instruction_explains_evidence_limitations() -> None:
     assert "structured visual-evidence" in STRUCTURED_IMAGE_SYSTEM_INSTRUCTION
     assert "Do not invent details" in STRUCTURED_IMAGE_SYSTEM_INSTRUCTION
+
+
+def test_spatial_relationships_are_derived_from_bounding_boxes() -> None:
+    detections = [
+        {"label": "person", "bbox_xyxy": [0, 10, 20, 50]},
+        {"label": "chair", "bbox_xyxy": [40, 10, 60, 50]},
+    ]
+
+    relationships = build_spatial_relationships(detections)
+
+    assert relationships[0]["subject_label"] == "person"
+    assert relationships[0]["relation"] == "left_of"
+    assert relationships[0]["object_label"] == "chair"
