@@ -26,8 +26,8 @@ class Settings(BaseSettings):
     llm_provider: str = "gemini"
     vlm_provider: str = "gemini"
     gemini_api_key: str | None = None
-    gemini_llm_model: str = "gemini-2.5-flash"
-    gemini_vlm_model: str = "gemini-2.5-flash"
+    gemini_llm_model: str = "gemini-3.8-flash"
+    gemini_vlm_model: str = "gemini-3.8-flash"
     groq_api_key: str | None = None
     groq_llm_model: str | None = None
     groq_vlm_model: str | None = None
