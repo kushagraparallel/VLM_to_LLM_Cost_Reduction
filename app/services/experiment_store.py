@@ -67,7 +67,6 @@ def save_comparison(database_path: str, result: dict[str, Any]) -> None:
                 json.dumps(result, ensure_ascii=False),
             ),
         )
-    logger.info("feedback_persistence_completed run_id=%s", run_id)
     logger.info("comparison_persistence_completed run_id=%s", result.get("run_id"))
 
 
@@ -113,3 +112,4 @@ def save_feedback(
                 comment,
             ),
         )
+    logger.info("feedback_persistence_completed run_id=%s", run_id)
