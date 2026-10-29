@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import base64
+import logging
 from dataclasses import asdict, dataclass
 from time import perf_counter
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -57,6 +60,7 @@ class ModelProvider:
     def generate_text(
         self, provider: str, model: str, prompt: str, system_instruction: str
     ) -> GenerationResult:
+        logger.debug("provider_dispatch operation=text provider=%s model=%s", provider, model)
         if provider == "gemini":
             return self._gemini_text(model, prompt, system_instruction)
         if provider == "groq":
@@ -68,6 +72,7 @@ class ModelProvider:
     def generate_image(
         self, provider: str, model: str, image_bytes: bytes, mime_type: str, prompt: str
     ) -> GenerationResult:
+        logger.debug("provider_dispatch operation=image provider=%s model=%s mime_type=%s image_bytes=%s", provider, model, mime_type, len(image_bytes))
         if provider == "gemini":
             return self._gemini_image(model, image_bytes, mime_type, prompt)
         if provider == "groq":
@@ -95,6 +100,7 @@ class ModelProvider:
         from google.genai import types
 
         started = perf_counter()
+        logger.info("provider_sdk_request provider=gemini operation=text model=%s", model)
         response = self._gemini_client().models.generate_content(
             model=model,
             contents=prompt,
@@ -112,6 +118,7 @@ class ModelProvider:
         from google.genai import types
 
         started = perf_counter()
+        logger.info("provider_sdk_request provider=gemini operation=image model=%s", model)
         part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
         response = self._gemini_client().models.generate_content(
             model=model,
@@ -134,6 +141,7 @@ class ModelProvider:
 
     def _groq_text(self, model: str, prompt: str, system_instruction: str) -> GenerationResult:
         started = perf_counter()
+        logger.info("provider_sdk_request provider=groq operation=text model=%s", model)
         response = self._groq_client().chat.completions.create(
             model=model,
             messages=[
@@ -151,6 +159,7 @@ class ModelProvider:
 
     def _groq_image(self, model: str, image_bytes: bytes, mime_type: str, prompt: str) -> GenerationResult:
         started = perf_counter()
+        logger.info("provider_sdk_request provider=groq operation=image model=%s", model)
         encoded = base64.b64encode(image_bytes).decode("ascii")
         data_url = f"data:{mime_type};base64,{encoded}"
         response = self._groq_client().chat.completions.create(
@@ -188,6 +197,7 @@ class ModelProvider:
 
     def _bedrock_text(self, model: str, prompt: str, system_instruction: str) -> GenerationResult:
         started = perf_counter()
+        logger.info("provider_sdk_request provider=bedrock operation=text model=%s", model)
         response = self._bedrock_client().converse(
             modelId=model,
             system=[{"text": system_instruction}],
@@ -200,6 +210,7 @@ class ModelProvider:
 
     def _bedrock_image(self, model: str, image_bytes: bytes, mime_type: str, prompt: str) -> GenerationResult:
         started = perf_counter()
+        logger.info("provider_sdk_request provider=bedrock operation=image model=%s", model)
         image_format = {
             "image/jpeg": "jpeg",
             "image/png": "png",

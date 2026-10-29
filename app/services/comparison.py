@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter
-from typing import Any, Callable
+from typing import Any
 
 from PIL import Image
 from starlette.concurrency import run_in_threadpool
@@ -22,13 +24,19 @@ from app.services.representation import (
 from app.services.yolo_detector import detect_objects
 from app.settings import Settings
 
+logger = logging.getLogger(__name__)
+
 
 async def _safe_provider_call(call: Callable[..., GenerationResult], *args: Any) -> dict[str, Any]:
     started = perf_counter()
+    call_name = getattr(call, "__qualname__", getattr(call, "__name__", "provider_call"))
+    logger.info("provider_call_started function=%s", call_name)
     try:
         result = await run_in_threadpool(call, *args)
+        logger.info("provider_call_completed function=%s provider=%s model=%s duration_seconds=%.4f", call_name, result.provider, result.model, result.latency_seconds)
         return result.to_dict()
     except Exception as exc:
+        logger.exception("provider_call_failed function=%s duration_seconds=%.4f", call_name, perf_counter() - started)
         return {
             "error": f"{type(exc).__name__}: {exc}",
             "provider_call_failed": True,
@@ -98,6 +106,7 @@ async def run_comparison(
         raise ValueError(f"No text model is configured for provider '{llm_provider}'.")
 
     total_started = perf_counter()
+    logger.info("comparison_pipeline_started vlm_provider=%s vlm_model=%s llm_provider=%s llm_model=%s", vlm_provider, vlm_model, llm_provider, llm_model)
     vlm_task = asyncio.create_task(
         _safe_provider_call(
             provider.generate_image,
@@ -112,12 +121,15 @@ async def run_comparison(
     ocr_started = perf_counter()
     ocr_regions = await run_in_threadpool(extract_text, image_array)
     ocr_seconds = round(perf_counter() - ocr_started, 6)
+    logger.info("comparison_ocr_completed regions=%s duration_seconds=%.4f", len(ocr_regions), ocr_seconds)
 
     detection_started = perf_counter()
     detections = await run_in_threadpool(detect_objects, image)
     detection_seconds = round(perf_counter() - detection_started, 6)
+    logger.info("comparison_detection_completed detections=%s duration_seconds=%.4f", len(detections), detection_seconds)
 
-    structure = structure_to_dict(
+    structure = await run_in_threadpool(
+        structure_to_dict,
         image_size=image.size,
         ocr_regions=ocr_regions,
         detections=detections,
@@ -127,6 +139,7 @@ async def run_comparison(
         },
     )
     structured_prompt = build_structured_user_message(user_prompt, structure)
+    logger.debug("comparison_representation_built ocr_regions=%s detections=%s relationships=%s", len(ocr_regions), len(detections), len(structure.relationships))
 
     llm_result = await _safe_provider_call(
         provider.generate_text,
@@ -143,13 +156,15 @@ async def run_comparison(
     llm_result.setdefault("model", llm_model)
 
     if not vlm_result.get("provider_call_failed"):
-        vlm_result["estimated_cost_usd"] = _estimate_cost(
+        vlm_result["estimated_cost_usd"] = await run_in_threadpool(
+            _estimate_cost,
             vlm_result,
             "vertex_gemini" if vlm_provider == "gemini" and settings.gemini_use_vertexai else vlm_provider,
             settings.pricing_config_path,
         )
     if not llm_result.get("provider_call_failed"):
-        llm_result["estimated_cost_usd"] = _estimate_cost(
+        llm_result["estimated_cost_usd"] = await run_in_threadpool(
+            _estimate_cost,
             llm_result,
             "vertex_gemini" if llm_provider == "gemini" and settings.gemini_use_vertexai else llm_provider,
             settings.pricing_config_path,
@@ -161,6 +176,7 @@ async def run_comparison(
     )
     vlm_seconds = vlm_result.get("latency_seconds")
     pipeline_cost = llm_result.get("estimated_cost_usd")
+    logger.info("comparison_pipeline_completed elapsed_seconds=%.4f direct_vlm_seconds=%s structured_pipeline_seconds=%.4f", perf_counter() - total_started, vlm_seconds, pipeline_seconds)
 
     return {
         "user_prompt": user_prompt,

@@ -5,7 +5,6 @@ from io import BytesIO
 import numpy as np
 from PIL import Image, UnidentifiedImageError
 
-
 MAX_IMAGE_PIXELS = 40_000_000
 
 

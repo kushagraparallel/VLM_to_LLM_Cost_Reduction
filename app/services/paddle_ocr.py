@@ -1,11 +1,15 @@
 """PaddleOCR adapter with lazy model initialization."""
 
+import logging
 from functools import lru_cache
+from time import perf_counter
 from typing import Any
 
 import numpy as np
 
 from app.settings import get_settings
+
+logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
@@ -13,13 +17,16 @@ def _get_ocr_engine() -> Any:
     """Create the OCR engine only when an image is processed."""
     from paddleocr import PaddleOCR
 
+    logger.info("ocr_engine_initialization_started")
     settings = get_settings()
-    return PaddleOCR(
+    engine = PaddleOCR(
         lang=settings.paddleocr_language,
         use_doc_orientation_classify=False,
         use_doc_unwarping=False,
         use_textline_orientation=False,
     )
+    logger.info("ocr_engine_initialization_completed language=%s", settings.paddleocr_language)
+    return engine
 
 
 def _polygon_bounds(points: Any) -> list[float] | None:
@@ -50,6 +57,8 @@ def _extract_result_payload(result: Any) -> dict[str, Any]:
 
 def extract_text(image_array: np.ndarray) -> list[dict[str, Any]]:
     """Return recognized text, confidence, polygon, and bounding box per region."""
+    started = perf_counter()
+    logger.debug("ocr_inference_started image_shape=%s", getattr(image_array, "shape", None))
     engine = _get_ocr_engine()
     results = engine.predict(input=image_array)
     regions: list[dict[str, Any]] = []
@@ -87,4 +96,5 @@ def extract_text(image_array: np.ndarray) -> list[dict[str, Any]]:
                 }
             )
 
+    logger.info("ocr_inference_completed regions=%s duration_seconds=%.4f", len(regions), perf_counter() - started)
     return regions

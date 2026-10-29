@@ -1,16 +1,20 @@
 """SQLite persistence for experiment runs and comparison feedback."""
 
 import json
+import logging
 import sqlite3
 from contextlib import closing
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+logger = logging.getLogger(__name__)
+
 
 def _connect(database_path: str) -> sqlite3.Connection:
     path = Path(database_path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    logger.debug("experiment_store_connect path=%s", path)
     connection = sqlite3.connect(path, timeout=10)
     connection.execute("PRAGMA foreign_keys = ON")
     return connection
@@ -18,6 +22,7 @@ def _connect(database_path: str) -> sqlite3.Connection:
 
 def initialize_store(database_path: str) -> None:
     """Create the local experiment tables if they do not exist."""
+    logger.debug("experiment_store_initialize_started path=%s", database_path)
     with closing(_connect(database_path)) as connection, connection:
         connection.execute(
             """
@@ -41,10 +46,12 @@ def initialize_store(database_path: str) -> None:
             )
             """
         )
+    logger.info("experiment_store_initialized path=%s", database_path)
 
 
 def save_comparison(database_path: str, result: dict[str, Any]) -> None:
     """Persist a comparison without retaining the uploaded image bytes."""
+    logger.info("comparison_persistence_started run_id=%s", result.get("run_id"))
     initialize_store(database_path)
     created_at = datetime.now(UTC).isoformat()
     with closing(_connect(database_path)) as connection, connection:
@@ -60,6 +67,7 @@ def save_comparison(database_path: str, result: dict[str, Any]) -> None:
                 json.dumps(result, ensure_ascii=False),
             ),
         )
+    logger.info("comparison_persistence_completed run_id=%s", result.get("run_id"))
 
 
 def save_feedback(
@@ -72,13 +80,15 @@ def save_feedback(
     comment: str | None,
 ) -> None:
     """Persist a user's preference and optional per-answer ratings."""
+    logger.info("feedback_persistence_started run_id=%s", run_id)
     initialize_store(database_path)
-    created_at = datetime.now(timezone.utc).isoformat()
+    created_at = datetime.now(UTC).isoformat()
     with closing(_connect(database_path)) as connection, connection:
         run_exists = connection.execute(
             "SELECT 1 FROM comparison_runs WHERE run_id = ?", (run_id,)
         ).fetchone()
         if not run_exists:
+            logger.warning("feedback_persistence_run_missing run_id=%s", run_id)
             raise KeyError(f"Comparison run '{run_id}' was not found.")
         connection.execute(
             """
@@ -102,3 +112,4 @@ def save_feedback(
                 comment,
             ),
         )
+    logger.info("feedback_persistence_completed run_id=%s", run_id)

@@ -1,12 +1,16 @@
 """YOLO26 Nano object detection through the OpenVINO inference backend."""
 
+import logging
 from functools import lru_cache
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 
 from PIL import Image
 
 from app.settings import get_settings
+
+logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
@@ -14,6 +18,7 @@ def _get_detector() -> Any:
     """Load an exported OpenVINO model on first use."""
     from ultralytics import YOLO
 
+    logger.info("detector_initialization_started")
     settings = get_settings()
     model_path = Path(settings.yolo_model_path)
     if not model_path.exists():
@@ -21,12 +26,16 @@ def _get_detector() -> Any:
             f"OpenVINO model not found at '{model_path}'. Export YOLO26 Nano first; "
             "see docs/SETUP.md."
         )
-    return YOLO(str(model_path), task="detect")
+    model = YOLO(str(model_path), task="detect")
+    logger.info("detector_initialization_completed model_path=%s", model_path)
+    return model
 
 
 def detect_objects(image: Image.Image) -> list[dict[str, Any]]:
     """Detect objects and return pixel and normalized bounding boxes."""
+    started = perf_counter()
     settings = get_settings()
+    logger.debug("detector_inference_started image_size=%s", image.size)
     model = _get_detector()
     result_list = model.predict(
         source=image,
@@ -67,4 +76,5 @@ def detect_objects(image: Image.Image) -> list[dict[str, Any]]:
                 }
             )
 
+    logger.info("detector_inference_completed detections=%s duration_seconds=%.4f", len(detections), perf_counter() - started)
     return detections
