@@ -30,3 +30,12 @@ The image and the user's prompt are sent to a configured vision-capable model. T
 
 ## Model loading
 Heavy models should be initialized lazily and reused within the process. Avoid loading model weights at module import time, especially for health checks and tests. OpenVINO model export/download artifacts should be kept out of Git.
+
+## Logging and concurrency
+
+- Configure application logging through `LOG_LEVEL` (defaults to `INFO`); use `DEBUG` for local troubleshooting.
+- Request middleware records request start/completion, HTTP status, duration, and an optional caller-supplied `X-Request-ID`. It does not log prompts, credentials, or image contents.
+- Route, OCR, detector, comparison, provider, and SQLite operations log stage start/completion and failures with durations or item counts where useful.
+- Synchronous provider SDK calls, image decoding/normalization, OCR, object detection, SQLite operations, representation construction, and pricing-file reads are dispatched through Starlette's thread pool from async routes/services. Declaring blocking work as `async` alone does not make it non-blocking.
+- Provider adapters remain synchronous functions intentionally: they execute in a worker thread via `run_in_threadpool`, keeping blocking vendor SDK calls off the event loop without forcing a vendor-specific async client.
+- Avoid logging prompts, OCR contents, raw provider responses, API keys, or uploaded image data because these may contain sensitive information.
