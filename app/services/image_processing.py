@@ -1,8 +1,7 @@
 """Image decoding helpers shared by vision services."""
 
-from io import BytesIO
-
 import numpy as np
+from io import BytesIO
 from PIL import Image, UnidentifiedImageError
 
 
