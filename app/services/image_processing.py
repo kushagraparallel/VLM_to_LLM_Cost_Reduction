@@ -1,7 +1,8 @@
 """Image decoding helpers shared by vision services."""
 
+import io
+
 import numpy as np
-from io import BytesIO
 from PIL import Image, UnidentifiedImageError
 
 
@@ -18,7 +19,7 @@ def decode_image(payload: bytes) -> tuple[Image.Image, np.ndarray]:
         raise InvalidImageError("The uploaded file is empty.")
 
     try:
-        with Image.open(io.BytesIO(payload)) as source:
+        with Image.open(io.io.BytesIO(payload)) as source:
             width, height = source.size
             if width * height > MAX_IMAGE_PIXELS:
                 raise InvalidImageError(
