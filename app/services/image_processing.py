@@ -18,7 +18,7 @@ def decode_image(payload: bytes) -> tuple[Image.Image, np.ndarray]:
         raise InvalidImageError("The uploaded file is empty.")
 
     try:
-        with Image.open(BytesIO(payload)) as source:
+        with Image.open(io.BytesIO(payload)) as source:
             width, height = source.size
             if width * height > MAX_IMAGE_PIXELS:
                 raise InvalidImageError(
