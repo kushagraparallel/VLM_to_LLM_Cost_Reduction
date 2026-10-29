@@ -127,7 +127,8 @@ async def run_comparison(
     detection_seconds = round(perf_counter() - detection_started, 6)
     logger.info("comparison_detection_completed detections=%s duration_seconds=%.4f", len(detections), detection_seconds)
 
-    structure = structure_to_dict(
+    structure = await run_in_threadpool(
+        structure_to_dict,
         image_size=image.size,
         ocr_regions=ocr_regions,
         detections=detections,
@@ -154,13 +155,15 @@ async def run_comparison(
     llm_result.setdefault("model", llm_model)
 
     if not vlm_result.get("provider_call_failed"):
-        vlm_result["estimated_cost_usd"] = _estimate_cost(
+        vlm_result["estimated_cost_usd"] = await run_in_threadpool(
+            _estimate_cost,
             vlm_result,
             "vertex_gemini" if vlm_provider == "gemini" and settings.gemini_use_vertexai else vlm_provider,
             settings.pricing_config_path,
         )
     if not llm_result.get("provider_call_failed"):
-        llm_result["estimated_cost_usd"] = _estimate_cost(
+        llm_result["estimated_cost_usd"] = await run_in_threadpool(
+            _estimate_cost,
             llm_result,
             "vertex_gemini" if llm_provider == "gemini" and settings.gemini_use_vertexai else llm_provider,
             settings.pricing_config_path,
