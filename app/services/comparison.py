@@ -10,11 +10,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter
 from typing import Any
+from uuid import uuid4
 
 from PIL import Image
 from starlette.concurrency import run_in_threadpool
 
 from app.providers import GenerationResult, ModelProvider
+from app.services.experiment_store import save_ai_call
 from app.services.paddle_ocr import extract_text
 from app.services.representation import (
     STRUCTURED_IMAGE_SYSTEM_INSTRUCTION,
@@ -27,21 +29,59 @@ from app.settings import Settings
 logger = logging.getLogger(__name__)
 
 
-async def _safe_provider_call(call: Callable[..., GenerationResult], *args: Any) -> dict[str, Any]:
+async def _safe_provider_call(
+    call: Callable[..., GenerationResult],
+    *args: Any,
+    run_id: str,
+    provider: str,
+    operation: str,
+    database_path: str,
+    pricing_config_path: str,
+    pricing_provider_key: str,
+) -> dict[str, Any]:
+    """Run one provider call and persist a log/storage record for it regardless of outcome."""
     started = perf_counter()
     call_name = getattr(call, "__qualname__", getattr(call, "__name__", "provider_call"))
-    logger.info("provider_call_started function=%s", call_name)
+    logger.info("provider_call_started function=%s run_id=%s", call_name, run_id)
     try:
-        result = await run_in_threadpool(call, *args)
-        logger.info("provider_call_completed function=%s provider=%s model=%s duration_seconds=%.4f", call_name, result.provider, result.model, result.latency_seconds)
-        return result.to_dict()
+        generation_result = await run_in_threadpool(call, *args)
+        payload = generation_result.to_dict()
+        status = "success"
+        error_message = None
+        logger.info(
+            "provider_call_completed function=%s provider=%s model=%s duration_seconds=%.4f",
+            call_name, generation_result.provider, generation_result.model, generation_result.latency_seconds,
+        )
+        payload["estimated_cost_usd"] = _estimate_cost(payload, pricing_provider_key, pricing_config_path)
     except Exception as exc:
         logger.exception("provider_call_failed function=%s duration_seconds=%.4f", call_name, perf_counter() - started)
-        return {
-            "error": f"{type(exc).__name__}: {exc}",
+        error_message = f"{type(exc).__name__}: {exc}"
+        status = "error"
+        payload = {
+            "error": error_message,
             "provider_call_failed": True,
             "latency_seconds": round(perf_counter() - started, 6),
         }
+
+    await run_in_threadpool(
+        save_ai_call,
+        database_path,
+        {
+            "call_id": str(uuid4()),
+            "run_id": run_id,
+            "provider": provider,
+            "model": payload.get("model"),
+            "operation": operation,
+            "status": status,
+            "duration_seconds": payload.get("latency_seconds"),
+            "input_tokens": payload.get("input_tokens"),
+            "output_tokens": payload.get("output_tokens"),
+            "reasoning_tokens": payload.get("reasoning_tokens"),
+            "estimated_cost_usd": payload.get("estimated_cost_usd"),
+            "error": error_message,
+        },
+    )
+    return payload
 
 
 def _estimate_cost(
@@ -76,6 +116,7 @@ def _estimate_cost(
 
 async def run_comparison(
     *,
+    run_id: str,
     settings: Settings,
     image_bytes: bytes,
     image: Image.Image,
@@ -106,7 +147,9 @@ async def run_comparison(
         raise ValueError(f"No text model is configured for provider '{llm_provider}'.")
 
     total_started = perf_counter()
-    logger.info("comparison_pipeline_started vlm_provider=%s vlm_model=%s llm_provider=%s llm_model=%s", vlm_provider, vlm_model, llm_provider, llm_model)
+    logger.info("comparison_pipeline_started run_id=%s vlm_provider=%s vlm_model=%s llm_provider=%s llm_model=%s", run_id, vlm_provider, vlm_model, llm_provider, llm_model)
+    vlm_pricing_key = "vertex_gemini" if vlm_provider == "gemini" and settings.gemini_use_vertexai else vlm_provider
+    llm_pricing_key = "vertex_gemini" if llm_provider == "gemini" and settings.gemini_use_vertexai else llm_provider
     vlm_task = asyncio.create_task(
         _safe_provider_call(
             provider.generate_image,
@@ -115,6 +158,12 @@ async def run_comparison(
             image_bytes,
             mime_type,
             user_prompt,
+            run_id=run_id,
+            provider=vlm_provider,
+            operation="image",
+            database_path=settings.results_db_path,
+            pricing_config_path=settings.pricing_config_path,
+            pricing_provider_key=vlm_pricing_key,
         )
     )
 
@@ -147,6 +196,12 @@ async def run_comparison(
         llm_model,
         structured_prompt,
         STRUCTURED_IMAGE_SYSTEM_INSTRUCTION,
+        run_id=run_id,
+        provider=llm_provider,
+        operation="text",
+        database_path=settings.results_db_path,
+        pricing_config_path=settings.pricing_config_path,
+        pricing_provider_key=llm_pricing_key,
     )
     vlm_result = await vlm_task
 
@@ -154,21 +209,6 @@ async def run_comparison(
     vlm_result.setdefault("model", vlm_model)
     llm_result.setdefault("provider", llm_provider)
     llm_result.setdefault("model", llm_model)
-
-    if not vlm_result.get("provider_call_failed"):
-        vlm_result["estimated_cost_usd"] = await run_in_threadpool(
-            _estimate_cost,
-            vlm_result,
-            "vertex_gemini" if vlm_provider == "gemini" and settings.gemini_use_vertexai else vlm_provider,
-            settings.pricing_config_path,
-        )
-    if not llm_result.get("provider_call_failed"):
-        llm_result["estimated_cost_usd"] = await run_in_threadpool(
-            _estimate_cost,
-            llm_result,
-            "vertex_gemini" if llm_provider == "gemini" and settings.gemini_use_vertexai else llm_provider,
-            settings.pricing_config_path,
-        )
 
     pipeline_seconds = round(
         ocr_seconds + detection_seconds + float(llm_result.get("latency_seconds", 0.0)),
@@ -179,6 +219,7 @@ async def run_comparison(
     logger.info("comparison_pipeline_completed elapsed_seconds=%.4f direct_vlm_seconds=%s structured_pipeline_seconds=%.4f", perf_counter() - total_started, vlm_seconds, pipeline_seconds)
 
     return {
+        "run_id": run_id,
         "user_prompt": user_prompt,
         "direct_vlm": {
             **vlm_result,

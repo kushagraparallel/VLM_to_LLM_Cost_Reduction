@@ -62,8 +62,10 @@ async def compare_image_models(
     normalized_image_bytes = await run_in_threadpool(normalize_image)
     logger.info("comparison_image_normalized bytes=%s", len(normalized_image_bytes))
 
+    run_id = str(uuid4())
     try:
         result = await run_comparison(
+            run_id=run_id,
             settings=settings,
             image_bytes=normalized_image_bytes,
             image=image,
@@ -73,7 +75,6 @@ async def compare_image_models(
             vlm_provider_override=selected_vlm_provider,
             llm_provider_override=selected_llm_provider,
         )
-        result["run_id"] = str(uuid4())
         await run_in_threadpool(save_comparison, settings.results_db_path, result)
         logger.info("comparison_completed run_id=%s elapsed_seconds=%.4f", result["run_id"], perf_counter() - request_started)
         return result

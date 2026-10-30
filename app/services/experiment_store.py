@@ -46,7 +46,65 @@ def initialize_store(database_path: str) -> None:
             )
             """
         )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS ai_calls (
+                call_id TEXT PRIMARY KEY,
+                run_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                provider TEXT NOT NULL,
+                model TEXT,
+                operation TEXT NOT NULL,
+                status TEXT NOT NULL,
+                duration_seconds REAL,
+                input_tokens INTEGER,
+                output_tokens INTEGER,
+                reasoning_tokens INTEGER,
+                estimated_cost_usd REAL,
+                error TEXT
+            )
+            """
+        )
+        connection.execute(
+            "CREATE INDEX IF NOT EXISTS idx_ai_calls_run_id ON ai_calls (run_id)"
+        )
     logger.info("experiment_store_initialized path=%s", database_path)
+
+
+def save_ai_call(database_path: str, call: dict[str, Any]) -> None:
+    """Persist a single AI provider call, independent of overall run outcome."""
+    logger.info(
+        "ai_call_persistence_started run_id=%s provider=%s model=%s operation=%s status=%s",
+        call.get("run_id"), call.get("provider"), call.get("model"), call.get("operation"), call.get("status"),
+    )
+    initialize_store(database_path)
+    created_at = datetime.now(UTC).isoformat()
+    with closing(_connect(database_path)) as connection, connection:
+        connection.execute(
+            """
+            INSERT INTO ai_calls (
+                call_id, run_id, created_at, provider, model, operation, status,
+                duration_seconds, input_tokens, output_tokens, reasoning_tokens,
+                estimated_cost_usd, error
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                call["call_id"],
+                call["run_id"],
+                created_at,
+                call["provider"],
+                call.get("model"),
+                call["operation"],
+                call["status"],
+                call.get("duration_seconds"),
+                call.get("input_tokens"),
+                call.get("output_tokens"),
+                call.get("reasoning_tokens"),
+                call.get("estimated_cost_usd"),
+                call.get("error"),
+            ),
+        )
+    logger.info("ai_call_persistence_completed run_id=%s call_id=%s", call.get("run_id"), call.get("call_id"))
 
 
 def save_comparison(database_path: str, result: dict[str, Any]) -> None:

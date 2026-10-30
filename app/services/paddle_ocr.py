@@ -24,6 +24,7 @@ def _get_ocr_engine() -> Any:
         use_doc_orientation_classify=False,
         use_doc_unwarping=False,
         use_textline_orientation=False,
+        enable_mkldnn=False,
     )
     logger.info("ocr_engine_initialization_completed language=%s", settings.paddleocr_language)
     return engine
